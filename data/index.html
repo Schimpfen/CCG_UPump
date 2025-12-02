@@ -1,0 +1,207 @@
+<!--/data/index.html-->
+
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Micropump Controller</title>
+  <link rel="stylesheet" href="/css/style.css"/>
+</head>
+<body>
+  <header class="header">
+    <h1>Micropump Controller</h1>
+    <div class="toolbar">
+      <button id="scan"  class="btn-secondary" type="button" title="Probe mux + drivers">Scan</button>
+      <button id="buzz"  class="btn-secondary" type="button" title="Quick test (120 Vpp @ 100 Hz)">Buzz</button>
+      <button id="stopAll" class="btn-danger"   type="button">STOP ALL</button>
+    </div>
+  </header>
+
+  <main class="columns">
+    <!-- Reusable pump card template (A/B/C) -->
+    <section class="column" data-pump="A">
+      <div class="card-head">
+        <h2 class="pump-title">Pump A</h2>
+        <label class="switch">
+          <input id="enA" type="checkbox" checked>
+          <span class="slider"></span>
+          <span class="label">ON</span>
+        </label>
+      </div>
+
+      <div class="row">
+        <label for="modelA">Model</label>
+        <div class="input-group">
+          <select id="modelA">
+            <option value="mp6">mp6 (typ. 7 mL/min @ 250 Vpp, 100 Hz)</option>
+            <option value="mp6-pp">mp6-pp (typ. 4 mL/min @ 250 Vpp, 100 Hz)</option>
+          </select>
+        </div>
+        <div class="hint">Reference per datasheets; estimate scales from this. </div>
+      </div>
+
+      <div class="row" data-field="amplitude">
+        <label for="ampA">Amplitude</label>
+        <div class="input-group">
+          <input id="ampA" type="number" inputmode="numeric" step="1" min="0" max="150" value="120">
+          <span>Vpp</span>
+        </div>
+        <div class="hint">Allowed: 0–150 Vpp</div>
+      </div>
+
+      <div class="row" data-field="frequency">
+        <label for="freqA">Frequency</label>
+        <div class="input-group">
+          <input id="freqA" type="number" inputmode="numeric" step="1" min="8" max="2000" value="100">
+          <span>Hz</span>
+        </div>
+        <div class="hint">Allowed: 8–2000 Hz</div>
+      </div>
+
+      <div class="row row-flow">
+        <label>Estimated Flow (DI water)</label>
+        <div class="flow-readout">
+          <output id="flowA" class="flow-value">–</output>
+          <span class="unit">mL/min</span>
+        </div>
+        <div class="hint">Scaled from datasheet typicals; frequency contribution is capped at 100 Hz. See info.</div>
+      </div>
+
+      <div class="row two">
+        <button class="btn-apply-one" data-apply="A" type="button">Apply A</button>
+        <button class="btn-off-one"   data-off="A"   type="button">Off A</button>
+      </div>
+    </section>
+
+    <!-- Pump B -->
+    <section class="column" data-pump="B">
+      <div class="card-head">
+        <h2 class="pump-title">Pump B</h2>
+        <label class="switch">
+          <input id="enB" type="checkbox" checked>
+          <span class="slider"></span>
+          <span class="label">ON</span>
+        </label>
+      </div>
+
+      <div class="row">
+        <label for="modelB">Model</label>
+        <div class="input-group">
+          <select id="modelB">
+            <option value="mp6">mp6 (typ. 7 mL/min @ 250 Vpp, 100 Hz)</option>
+            <option value="mp6-pp">mp6-pp (typ. 4 mL/min @ 250 Vpp, 100 Hz)</option>
+          </select>
+        </div>
+        <div class="hint">Reference per datasheets; estimate scales from this.</div>
+      </div>
+
+      <div class="row" data-field="amplitude">
+        <label for="ampB">Amplitude</label>
+        <div class="input-group">
+          <input id="ampB" type="number" step="1" min="0" max="150" value="120">
+          <span>Vpp</span>
+        </div>
+        <div class="hint">Allowed: 0–150 Vpp</div>
+      </div>
+
+      <div class="row" data-field="frequency">
+        <label for="freqB">Frequency</label>
+        <div class="input-group">
+          <input id="freqB" type="number" step="1" min="8" max="2000" value="100">
+          <span>Hz</span>
+        </div>
+        <div class="hint">Allowed: 8–2000 Hz</div>
+      </div>
+
+      <div class="row row-flow">
+        <label>Estimated Flow (DI water)</label>
+        <div class="flow-readout">
+          <output id="flowB" class="flow-value">–</output>
+          <span class="unit">mL/min</span>
+        </div>
+        <div class="hint">Scaled from datasheet typicals; frequency contribution is capped at 100 Hz. See info.</div>
+      </div>
+
+      <div class="row two">
+        <button class="btn-apply-one" data-apply="B" type="button">Apply B</button>
+        <button class="btn-off-one"   data-off="B"   type="button">Off B</button>
+      </div>
+    </section>
+
+    <!-- Pump C -->
+    <section class="column" data-pump="C">
+      <div class="card-head">
+        <h2 class="pump-title">Pump C</h2>
+        <label class="switch">
+          <input id="enC" type="checkbox" checked>
+          <span class="slider"></span>
+          <span class="label">ON</span>
+        </label>
+      </div>
+
+      <div class="row">
+        <label for="modelC">Model</label>
+        <div class="input-group">
+          <select id="modelC">
+            <option value="mp6">mp6 (typ. 7 mL/min @ 250 Vpp, 100 Hz)</option>
+            <option value="mp6-pp">mp6-pp (typ. 4 mL/min @ 250 Vpp, 100 Hz)</option>
+          </select>
+        </div>
+        <div class="hint">Reference per datasheets; estimate scales from this.</div>
+      </div>
+
+      <div class="row" data-field="amplitude">
+        <label for="ampC">Amplitude</label>
+        <div class="input-group">
+          <input id="ampC" type="number" step="1" min="0" max="150" value="120">
+          <span>Vpp</span>
+        </div>
+        <div class="hint">Allowed: 0–150 Vpp</div>
+      </div>
+
+      <div class="row" data-field="frequency">
+        <label for="freqC">Frequency</label>
+        <div class="input-group">
+          <input id="freqC" type="number" step="1" min="8" max="2000" value="100">
+          <span>Hz</span>
+        </div>
+        <div class="hint">Allowed: 8–2000 Hz</div>
+      </div>
+
+      <div class="row row-flow">
+        <label>Estimated Flow (DI water)</label>
+        <div class="flow-readout">
+          <output id="flowC" class="flow-value">–</output>
+          <span class="unit">mL/min</span>
+        </div>
+        <div class="hint">Scaled from datasheet typicals; frequency contribution is capped at 100 Hz. See info.</div>
+      </div>
+
+      <div class="row two">
+        <button class="btn-apply-one" data-apply="C" type="button">Apply C</button>
+        <button class="btn-off-one"   data-off="C"   type="button">Off C</button>
+      </div>
+    </section>
+  </main>
+
+  <aside class="note">
+    <strong>Flow estimate:</strong> Based on datasheet typicals for DI water (SRS, 250 Vpp, ~100 Hz) and linear scaling with amplitude
+    and frequency up to ~100 Hz; resonance/viscosity effects are not modeled here. For precise flows, calibrate in your setup.
+    Sources: mp6/mp6-pp manuals (typical flow at 250 Vpp & 100 Hz; linear dependencies; resonance behavior). 
+  </aside>
+
+  <div class="apply-container">
+    <button id="applyAll" class="btn-primary" type="button">Apply All</button>
+  </div>
+
+  <footer class="footer">
+    <div class="logos">
+      <img src="/images/cell_logo.png" alt="Cell chip group">
+      <img src="/images/tu_logo.png" alt="TU Wien">
+    </div>
+  </footer>
+
+  <script src="/js/controller.js"></script>
+</body>
+</html>
