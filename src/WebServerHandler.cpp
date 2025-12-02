@@ -46,6 +46,21 @@ void WebServerHandler::begin() {
     req->send(200, "application/json", s);
   });
 
+  // Status snapshot
+  server->on("/status", HTTP_GET, [](AsyncWebServerRequest* req){
+    StaticJsonDocument<512> doc;
+    JsonArray out = doc.createNestedArray("pumps");
+    for (uint8_t i=0;i<3;i++){
+      JsonObject o = out.createNestedObject();
+      o["pump"]      = String((char)('A'+i));
+      o["enabled"]   = bPumpState[i];
+      o["amplitude"] = (AMP_V_MAX * (float)nPumpVoltageByte[i]) / 255.0f;        // Vpp
+      o["frequency"] = 7.8125f * (float)(nFrequencyByte[i] ? nFrequencyByte[i] : 1); // Hz
+    }
+    String s; serializeJson(doc, s);
+    req->send(200, "application/json", s);
+  });
+
   // Stop all
   server->on("/stop", HTTP_POST, [](AsyncWebServerRequest* req){
     stopPumps();
@@ -88,6 +103,33 @@ void WebServerHandler::begin() {
       }
 
       req->send(200, "text/plain", "ok");
+    }
+  );
+
+  // Buzz quick test (sequential A->C)
+  server->on("/buzz", HTTP_POST,
+    [](AsyncWebServerRequest* req){ /* onRequest */ },
+    nullptr,
+    [](AsyncWebServerRequest* req, uint8_t* data, size_t len, size_t, size_t){
+      StaticJsonDocument<256> doc;
+      DeserializationError err = deserializeJson(doc, data, len);
+      if (err) { req->send(400, "text/plain", "invalid json"); return; }
+
+      unsigned vpp = doc["vpp"] | 120;
+      unsigned hz  = doc["hz"]  | 100;
+      unsigned ms  = doc["ms"]  | 2000;
+
+      for (uint8_t i=0;i<3;i++){
+        Lowdriver_setvoltage(i, vpp);
+        Lowdriver_setfrequency(i, hz);
+        bPumpState[i] = true;
+        delay(ms);
+        Lowdriver_setvoltage(i, 0);
+        bPumpState[i] = false;
+        delay(150);
+      }
+
+      req->send(200, "text/plain", "buzz ok");
     }
   );
 

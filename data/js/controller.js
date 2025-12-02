@@ -25,23 +25,22 @@
     inp.value = v;
   }
 
-  // ---- Flow model (see README in index.html note) ---------------------------
-  function qRef(model){
-    return (model === "mp6-pp") ? 4.0 : 7.0; // mL/min @ 250 Vpp, ~100 Hz (typical, DI water)
+  // ---- Flow model (empirical fit) ------------------------------------------
+  // Mean flow (uL/min @ 100 Hz): Q = 1.20 * Vpp - 29.1
+  // Scale linearly with frequency up to 100 Hz; clamp negatives to zero.
+  function flowEstimate(vpp, hz){
+    const vClamped = Math.max(0, Math.min(vpp, 150));
+    const baseUL   = (1.20 * vClamped) - 29.1; // uL/min @ 100 Hz
+    const fTerm    = Math.max(0, Math.min(hz, 100)) / 100;
+    const mlPerMin = Math.max(0, baseUL) * fTerm / 1000.0; // convert to mL/min
+    return Number(mlPerMin.toFixed(4));
   }
-  function flowEstimate(model, vpp, hz){
-  const Qref = qRef(model);          // 7.0 or 4.0 mL/min @ 250 Vpp, 100 Hz
-  const vTerm = Math.max(0, Math.min(vpp, 150)) / 150;  // ← use 150
-  const fTerm = Math.max(0, Math.min(hz, 100)) / 100;
-  return Math.max(0, Number((Qref * vTerm * fTerm).toFixed(2)));
-}
 
   function updateOneCard(id){
     const enabled = el(`en${id}`).checked;
     const amp  = Number(el(`amp${id}`).value);
     const freq = Number(el(`freq${id}`).value);
-    const model = el(`model${id}`).value;
-    const flow = enabled ? flowEstimate(model, amp, freq) : 0;
+    const flow = enabled ? flowEstimate(amp, freq) : 0;
     el(`flow${id}`).textContent = Number.isFinite(flow) ? flow.toFixed(2) : "–";
 
     // validity colors + disabled state
@@ -70,11 +69,10 @@
 
   function payloadFor(id){
     const enabled = el(`en${id}`).checked;
-    const model   = el(`model${id}`).value;
-    if(!enabled) return { pump:id, enabled:false, amplitude:0, frequency:0, model };
+    if(!enabled) return { pump:id, enabled:false, amplitude:0, frequency:0 };
     const amp  = Math.round(Number(el(`amp${id}`).value));
     const freq = Math.round(Number(el(`freq${id}`).value));
-    return { pump:id, enabled:true, amplitude:amp, frequency:freq, model };
+    return { pump:id, enabled:true, amplitude:amp, frequency:freq };
   }
 
   async function postJSON(path, obj){
@@ -86,18 +84,40 @@
     return res.text();
   }
 
+  async function loadStatus(){
+    try {
+      const res = await fetch('/status');
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const data = await res.json();
+      if (!data || !Array.isArray(data.pumps)) return;
+      data.pumps.forEach(p=>{
+        const id = (p.pump||"").toString().toUpperCase();
+        if (!PUMPS.includes(id)) return;
+        if (typeof p.enabled === "boolean") el(`en${id}`).checked = p.enabled;
+        if (Number.isFinite(p.amplitude)) el(`amp${id}`).value = Math.round(p.amplitude);
+        if (Number.isFinite(p.frequency)) el(`freq${id}`).value = Math.round(p.frequency);
+      });
+    } catch(err){
+      console.error('status load error', err);
+    }
+  }
+
   // wiring
   document.querySelectorAll('input[type="number"]').forEach(inp=>{
     inp.addEventListener('input', updateAll);
     inp.addEventListener('blur', ()=>{ clampInput(inp); updateAll(); });
   });
   document.querySelectorAll('.switch input').forEach(t=>{
-    t.addEventListener('change', updateAll);
+    t.addEventListener('change', async ()=>{
+      const id = t.id.slice(-1).toUpperCase();
+      if (!PUMPS.includes(id)) { updateAll(); return; }
+      clampInput(el(`amp${id}`));
+      clampInput(el(`freq${id}`));
+      updateAll();
+      try { await postJSON('/apply', { pumps:[ payloadFor(id) ] }); }
+      catch(e){ console.error('toggle apply error', e); }
+    });
   });
-  document.querySelectorAll('select[id^="model"]').forEach(sel=>{
-    sel.addEventListener('change', updateAll);
-  });
-
   // per-pump Apply
   document.querySelectorAll('.btn-apply-one').forEach(btn=>{
     btn.addEventListener('click', async ()=>{
@@ -116,7 +136,7 @@
       const id = btn.dataset.off;
       el(`en${id}`).checked = false;
       updateOneCard(id);
-      try { await postJSON('/apply', { pumps:[ { pump:id, enabled:false, amplitude:0, frequency:0, model:el(`model${id}`).value } ] }); }
+      try { await postJSON('/apply', { pumps:[ { pump:id, enabled:false, amplitude:0, frequency:0 } ] }); }
       catch(e){ console.error('off error', e); }
     });
   });
@@ -154,5 +174,5 @@
   }, {passive:true});
 
   // init UI
-  updateAll();
+  loadStatus().finally(updateAll);
 })();

@@ -30,17 +30,6 @@
         </label>
       </div>
 
-      <div class="row">
-        <label for="modelA">Model</label>
-        <div class="input-group">
-          <select id="modelA">
-            <option value="mp6">mp6 (typ. 7 mL/min @ 250 Vpp, 100 Hz)</option>
-            <option value="mp6-pp">mp6-pp (typ. 4 mL/min @ 250 Vpp, 100 Hz)</option>
-          </select>
-        </div>
-        <div class="hint">Reference per datasheets; estimate scales from this. </div>
-      </div>
-
       <div class="row" data-field="amplitude">
         <label for="ampA">Amplitude</label>
         <div class="input-group">
@@ -65,7 +54,7 @@
           <output id="flowA" class="flow-value">–</output>
           <span class="unit">mL/min</span>
         </div>
-        <div class="hint">Scaled from datasheet typicals; frequency contribution is capped at 100 Hz. See info.</div>
+        <div class="hint">Estimate: Q = 1.20*Vpp - 29.1 (uL/min @100 Hz), scaled linearly up to 100 Hz.</div>
       </div>
 
       <div class="row two">
@@ -83,17 +72,6 @@
           <span class="slider"></span>
           <span class="label">ON</span>
         </label>
-      </div>
-
-      <div class="row">
-        <label for="modelB">Model</label>
-        <div class="input-group">
-          <select id="modelB">
-            <option value="mp6">mp6 (typ. 7 mL/min @ 250 Vpp, 100 Hz)</option>
-            <option value="mp6-pp">mp6-pp (typ. 4 mL/min @ 250 Vpp, 100 Hz)</option>
-          </select>
-        </div>
-        <div class="hint">Reference per datasheets; estimate scales from this.</div>
       </div>
 
       <div class="row" data-field="amplitude">
@@ -120,7 +98,7 @@
           <output id="flowB" class="flow-value">–</output>
           <span class="unit">mL/min</span>
         </div>
-        <div class="hint">Scaled from datasheet typicals; frequency contribution is capped at 100 Hz. See info.</div>
+        <div class="hint">Estimate: Q = 1.20*Vpp - 29.1 (uL/min @100 Hz), scaled linearly up to 100 Hz.</div>
       </div>
 
       <div class="row two">
@@ -138,17 +116,6 @@
           <span class="slider"></span>
           <span class="label">ON</span>
         </label>
-      </div>
-
-      <div class="row">
-        <label for="modelC">Model</label>
-        <div class="input-group">
-          <select id="modelC">
-            <option value="mp6">mp6 (typ. 7 mL/min @ 250 Vpp, 100 Hz)</option>
-            <option value="mp6-pp">mp6-pp (typ. 4 mL/min @ 250 Vpp, 100 Hz)</option>
-          </select>
-        </div>
-        <div class="hint">Reference per datasheets; estimate scales from this.</div>
       </div>
 
       <div class="row" data-field="amplitude">
@@ -175,7 +142,7 @@
           <output id="flowC" class="flow-value">–</output>
           <span class="unit">mL/min</span>
         </div>
-        <div class="hint">Scaled from datasheet typicals; frequency contribution is capped at 100 Hz. See info.</div>
+        <div class="hint">Estimate: Q = 1.20*Vpp - 29.1 (uL/min @100 Hz), scaled linearly up to 100 Hz.</div>
       </div>
 
       <div class="row two">
@@ -186,9 +153,7 @@
   </main>
 
   <aside class="note">
-    <strong>Flow estimate:</strong> Based on datasheet typicals for DI water (SRS, 250 Vpp, ~100 Hz) and linear scaling with amplitude
-    and frequency up to ~100 Hz; resonance/viscosity effects are not modeled here. For precise flows, calibrate in your setup.
-    Sources: mp6/mp6-pp manuals (typical flow at 250 Vpp & 100 Hz; linear dependencies; resonance behavior). 
+    <strong>Flow estimate:</strong> Empirical fit: Q[uL/min] = 1.20*Vpp - 29.1 at 100 Hz. Frequency scales linearly up to 100 Hz; values below zero are clamped to 0. Calibrate for your fluid/setup for precise flows.
   </aside>
 
   <div class="apply-container">

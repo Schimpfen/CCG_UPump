@@ -4,7 +4,8 @@
 #include <Wire.h>
 
 // ── TCA channels (A,B,C) ────────────────────────────────────────
-const unsigned int pumpChannels[3] = { 2, 4, 6 };
+// Wiring has Pump A on channel 6 and Pump C on channel 2, so map accordingly.
+const unsigned int pumpChannels[3] = { 6, 4, 2 };
 
 // ── State ───────────────────────────────────────────────────────
 bool bPumpState[3] = { false, false, false };
@@ -77,16 +78,22 @@ static void low_write_mem_block(uint8_t ampB, uint8_t freqB, uint8_t cycles=100,
   Wire.endTransmission();
 }
 
-// ── Public API ──────────────────────────────────────────────────
-void Lowdriver_init(unsigned int pump){
+static bool selectAndProbe(unsigned int pump){
   tcaSelect(pump);
   delay(2);
-
-  // PROBE the lowdriver at 0x59 first
   Wire.beginTransmission(I2C_LOWDRIVER_ADRESS);
   uint8_t rc = Wire.endTransmission(); // 0 = ACK
   if (rc != 0) {
-    Serial.printf("[INIT] Pump %c FAIL: 0x59 not responding (rc=%u)\n", 'A'+pump, rc);
+    Serial.printf("[I2C] Pump %c (ch%u) NACK from 0x59 (rc=%u)\n", 'A'+pump, pumpChannels[pump], rc);
+    return false;
+  }
+  return true;
+}
+
+// ── Public API ──────────────────────────────────────────────────
+void Lowdriver_init(unsigned int pump){
+  if (!selectAndProbe(pump)) {
+    Serial.printf("[INIT] Pump %c FAIL: 0x59 not responding\n", 'A'+pump);
     bPumpState[pump] = false;
     nPumpVoltageByte[pump] = 0;
     nFrequencyByte[pump]   = 0x0C;
@@ -132,8 +139,7 @@ void Lowdriver_init(unsigned int pump){
 
 
 void Lowdriver_setfrequency(unsigned int pump, unsigned int _frequency){
-  tcaSelect(pump);
-  delay(2);
+  if (!selectAndProbe(pump)) return;
 
   uint8_t code = hz_to_code(_frequency);
   nFrequencyByte[pump] = code;
@@ -147,8 +153,7 @@ void Lowdriver_setfrequency(unsigned int pump, unsigned int _frequency){
 }
 
 void Lowdriver_setvoltage(unsigned int pump, unsigned int _voltage){
-  tcaSelect(pump);
-  delay(2);
+  if (!selectAndProbe(pump)) return;
 
   uint8_t ampB = vpp_to_byte(_voltage);
   nPumpVoltageByte[pump] = ampB;
