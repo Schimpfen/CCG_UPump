@@ -1,0 +1,5 @@
+(fp_lib_table
+  (version 7)
+  (lib (name "FPC")(type "KiCad")(uri "${KIPRJMOD}/FPC.pretty")(options "")(descr ""))
+  (lib (name "DRV2667")(type "KiCad")(uri "${KIPRJMOD}/DRV2667.pretty")(options "")(descr ""))
+)
